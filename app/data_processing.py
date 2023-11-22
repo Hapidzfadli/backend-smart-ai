@@ -184,3 +184,18 @@ def calculate_reorder_ratios():
     result = rasio
 
     return result
+
+def reordered_products_histogram():
+    # Membuat histogram untuk jumlah produk yang dipesan ulang dalam satu pesanan
+    count_of_reordered_products = order_products.groupby(['order_id'], as_index=False)['reordered'].sum()
+    count_of_reordered_products['count_of_reordered_products'] = count_of_reordered_products['reordered']
+    less_than_50_reordered_products = count_of_reordered_products[count_of_reordered_products['count_of_reordered_products'] < 50]
+
+    # Membuat histogram dan menyimpan data ke dalam format yang diinginkan
+    histogram_data, bin_edges = np.histogram(less_than_50_reordered_products['count_of_reordered_products'], bins=100)
+    histogram_result = [{'bin': int(bin_edge), 'count': int(count)} for bin_edge, count in zip(bin_edges, histogram_data) if count != 0]
+
+    # Hasil yang diinginkan
+    result = histogram_result
+
+    return result

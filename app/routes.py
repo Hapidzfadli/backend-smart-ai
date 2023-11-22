@@ -1,6 +1,6 @@
 from app import app
 from flask import jsonify
-from app.data_processing import save_orders_to_json, count_products_by_department, get_total_orders_and_users, calculate_reorder_ratios, calculate_reorder_ratio_by_order
+from app.data_processing import save_orders_to_json,  count_products_by_department, get_total_orders_and_users, calculate_reorder_ratios, calculate_reorder_ratio_by_order, reordered_products_histogram
 
 import json
 
@@ -44,3 +44,8 @@ def calculate_reorder_ratios_api():
 def calculate_reorder_ratio_by_order_api():
     result = calculate_reorder_ratio_by_order()
     return jsonify({'data': json.loads(result)})
+
+@app.route('/api/reordered_products_histogram', methods=['GET'])
+def reordered_products_histogram_api():
+    result = reordered_products_histogram()
+    return jsonify({'data': result})
