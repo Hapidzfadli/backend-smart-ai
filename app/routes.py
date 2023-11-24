@@ -1,6 +1,6 @@
 from app import app
 from flask import jsonify
-from app.data_processing import save_orders_to_json,  count_products_by_department, get_total_orders_and_users, calculate_reorder_ratios, calculate_reorder_ratio_by_order, reordered_products_histogram
+from app.data_processing import save_orders_to_json,  count_products_by_department, get_total_orders_and_users, calculate_reorder_ratios, calculate_reorder_ratio_by_order, reordered_products_histogram, days_since_prior_order_histogram, order_hour_of_day_histogram, order_day_of_week_histogram, percentage_of_ordering, count_of_ordering, organic_purchase_frequency, organic_ratio, department_order_percentage
 
 import json
 
@@ -48,4 +48,42 @@ def calculate_reorder_ratio_by_order_api():
 @app.route('/api/reordered_products_histogram', methods=['GET'])
 def reordered_products_histogram_api():
     result = reordered_products_histogram()
+    return jsonify({'data': result})
+
+@app.route('/api/order_day_of_week_histogram', methods=['GET'])
+def order_day_of_week_histogram_api():
+    result = order_day_of_week_histogram()
+    return jsonify({'data': result})
+
+@app.route('/api/order_hour_of_day_histogram', methods=['GET'])
+def order_hour_of_day_histogram_api():
+    result = order_hour_of_day_histogram()
+    return jsonify({'data': result})
+
+@app.route('/api/percentage_of_ordering', methods=['GET'])
+def percentage_of_ordering_api():
+    result = percentage_of_ordering()
+    return jsonify({'data': json.loads(result)})
+
+
+@app.route('/api/count_of_ordering', methods=['GET'])
+def count_of_ordering_api():
+    result = count_of_ordering()
+    return jsonify({'data': json.loads(result)})
+
+
+@app.route('/api/organic_ratio', methods=['GET'])
+def organic_ratio_api():
+    result = organic_ratio()
+    return jsonify({'data': result})
+
+@app.route('/api/organic_purchase_frequency', methods=['GET'])
+def organic_purchase_frequency_api():
+    result = organic_purchase_frequency()
+    return jsonify({'data': result})
+
+
+@app.route('/api/department_order_percentage', methods=['GET'])
+def department_order_percentage_api():
+    result = department_order_percentage()
     return jsonify({'data': result})

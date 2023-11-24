@@ -94,6 +94,7 @@ order_products = order_products.merge(products, on='product_id', how='left').mer
 total_orders = order_products['order_id'].nunique()
 total_users = order_products['user_id'].nunique()
 
+
 def save_orders_to_json():
     # Pengolahan data (seperti yang telah dijelaskan sebelumnya)
 
@@ -199,3 +200,120 @@ def reordered_products_histogram():
     result = histogram_result
 
     return result
+
+
+def order_day_of_week_histogram():
+    # Count occurrences of each day in 'order_dow'
+    day_counts = orders['order_dow'].value_counts().sort_index()
+
+    # Convert the result to a list of dictionaries
+    histogram_result = [{'day': day, 'count': count} for day, count in day_counts.items()]
+
+    # Result as a dictionary
+    result = histogram_result
+    return result
+
+
+def order_hour_of_day_histogram():
+    # Membuat histogram untuk jam dalam sehari
+    histogram_data, bin_edges = np.histogram(orders['order_hour_of_day'], bins=24)
+    histogram_result = [{'bin': int(bin_edge), 'count': int(count)} for bin_edge, count in zip(bin_edges, histogram_data)]
+
+    # Hasil yang diinginkan
+    result = {'histogram_data': histogram_result}
+    return result
+
+def days_since_prior_order_histogram():
+    # Drop rows with NaN values in 'days_since_prior_order'
+    orders_no_nan = orders.dropna(subset=['days_since_prior_order'])
+
+    # Membuat histogram untuk jumlah hari sebelum pesanan terakhir
+    histogram_data, bin_edges = np.histogram(orders_no_nan['days_since_prior_order'], bins=30)
+    histogram_result = [{'bin': int(bin_edge), 'count': int(count)} for bin_edge, count in zip(bin_edges, histogram_data)]
+
+    # Hasil yang diinginkan
+    result = histogram_result
+    return result
+
+
+def percentage_of_ordering():
+    # Menyortir produk secara menurun berdasarkan frekuensi pemesanannya
+    products_frequency_desc = order_products.groupby('product_name')['order_id'].aggregate('count').reset_index()
+    products_frequency_desc['count_of_ordering'] = products_frequency_desc['order_id']
+    products_frequency_desc = products_frequency_desc.sort_values(by=['count_of_ordering'], ascending=False)
+
+    # Mengambil 30 produk yang paling sering dipesan
+    top_products = products_frequency_desc.iloc[:30]
+
+    # Persentase Pemesanan untuk 30 Produk yang Paling Sering Dipesan
+    percentage_data = top_products[['product_name', 'count_of_ordering']].copy()
+    percentage_data['percentage_of_ordering'] = (percentage_data['count_of_ordering'] / total_orders) * 100
+
+    # Persentase Pemesanan JSON
+    percentage_json = percentage_data.to_json(orient='records')
+
+    return percentage_json
+
+
+def count_of_ordering():
+    # Menyortir produk secara menurun berdasarkan frekuensi pemesanannya
+    products_frequency_desc = order_products.groupby('product_name')['order_id'].aggregate('count').reset_index()
+    products_frequency_desc['count_of_ordering'] = products_frequency_desc['order_id']
+    products_frequency_desc = products_frequency_desc.sort_values(by=['count_of_ordering'], ascending=False)
+
+    # Mengambil 30 produk yang paling sering dipesan
+    top_products = products_frequency_desc.iloc[:30]
+
+    # Jumlah Pesanan JSON
+    count_json = top_products[['product_name', 'count_of_ordering']].to_json(orient='records')
+
+    return count_json
+
+def is_organic(product_name):
+    return 'Organic' in product_name
+
+
+
+def organic_ratio():
+    # Rasio produk organik yang ditemukan di supermarket
+    products['is_organic'] = products['product_name'].apply(is_organic)
+    total_products_count = products.shape[0]
+    organic_ratio = products['is_organic'].value_counts() / total_products_count * 100
+
+    # Convert the result to JSON
+    result_json = organic_ratio.to_dict()
+
+    return result_json
+
+def organic_purchase_frequency():
+    # Frekuensi pembelian produk organik
+    products['is_organic'] = products['product_name'].apply(is_organic)
+    total_order_products_count = order_products.shape[0]
+    merged_df = order_products.merge(products, on='product_id', how='inner')
+    organic_freq = merged_df['is_organic'].value_counts() / merged_df.shape[0] * 100
+
+    # Convert the result to JSON
+    result_json = {
+        'organic_purchase_frequency': organic_freq.to_dict(),
+    }
+
+    return result_json
+
+
+def department_order_percentage():
+    # Dari Seluruh Produk yang Dipesan, Jumlah Kontribusi dari Setiap Departemen
+    # Mengelompokkan berdasarkan jumlah pemesanan dari suatu departemen
+    total_ordered_products = order_products.shape[0]
+    groupeddf = order_products.groupby(['department'], as_index=False).count().rename(columns={'department_id': 'count_of_ordered_prods'})
+
+    # Calculate percentage and create a list of dictionaries
+    result_list = [
+        {'value': percentage, 'label': department.capitalize(), 'id': department.lower()}
+        for department, percentage in zip(groupeddf['department'], groupeddf['count_of_ordered_prods'] / total_ordered_products * 100)
+    ]
+
+    # Convert the result to JSON
+    result_json = result_list
+
+    return result_json
+
